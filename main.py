@@ -28,7 +28,7 @@ def carregar_imagem(caminho_imagem):
 
 # Caminho da imagem (altere para o caminho correto da sua imagem)
 caminho_imagem_topo = "C:/Users/AmaraNzero/Documents/AmaraBrasil/vs_code/ConciliadorInventarioRotativo/image.png"
-caminho_imagem_rodape = "C:/Users/AmaraNzero/Documents/AmaraBrasil/vs_code/ConciliadorInventarioRotativo/logo_branca.png"
+caminho_imagem_rodape = "./logo_branca.png"
 
 # Adicionando uma imagem centralizada acima do título com tamanho reduzido
 st.image('./pagina-logo.jpg',width=1480, use_column_width=False)
