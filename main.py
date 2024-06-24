@@ -6,7 +6,13 @@ from PIL import Image
 import base64
 
 # Definindo o locale para o padrão brasileiro
-locale.setlocale(locale.LC_ALL, 'pt_BR.utf8')
+# locale.setlocale(locale.LC_ALL, 'pt_BR.utf8')
+# Tente definir a localidade para pt_BR.UTF-8
+try:
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+except locale.Error:
+    st.warning("Localidade 'pt_BR.UTF-8' não suportada. Usando localidade padrão.")
+    locale.setlocale(locale.LC_ALL, '')
 
 
 # Configurar o layout da página para largura ampla
