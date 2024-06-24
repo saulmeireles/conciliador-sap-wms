@@ -9,32 +9,55 @@ import base64
 locale.setlocale(locale.LC_ALL, 'pt_BR.utf8')
 
 
-
 # Configurar o layout da página para largura ampla
-st.set_page_config(layout="wide", page_title="Conciliação de Inventário Rotativo")
+st.set_page_config(layout="wide", page_title="Conciliação de Inventário Rotativo", page_icon = 'C:/Users/AmaraNzero/Documents/AmaraBrasil/vs_code/ConciliadorInventarioRotativo/logo2.png')
+
+# Função para carregar a imagem
+def carregar_imagem(caminho_imagem):
+    with open(caminho_imagem, "rb") as img_file:
+        img_bytes = img_file.read()
+        encoded_img = base64.b64encode(img_bytes).decode()
+        return encoded_img
+
+# Caminho da imagem (altere para o caminho correto da sua imagem)
+caminho_imagem_topo = "C:/Users/AmaraNzero/Documents/AmaraBrasil/vs_code/ConciliadorInventarioRotativo/image.png"
+caminho_imagem_rodape = "C:/Users/AmaraNzero/Documents/AmaraBrasil/vs_code/ConciliadorInventarioRotativo/logo_branca.png"
 
 # Adicionando uma imagem centralizada acima do título com tamanho reduzido
-#st.image('C:/Users/AmaraNzero/Documents/AmaraBrasil/vs_code/teste/logo.png',width=150, use_column_width=False)
+st.image('C:/Users/AmaraNzero/Documents/AmaraBrasil/vs_code/ConciliadorInventarioRotativo/pagina-logo.jpg',width=1480, use_column_width=False)
 
 # Função para converter imagem para base64
-def img_to_bytes(img_path):
-    img = Image.open(img_path)
-    buffer = BytesIO()
-    img.save(buffer, format="PNG")
-    img_str = base64.b64encode(buffer.getvalue()).decode()
-    return img_str
+# def img_to_bytes(img_path):
+#     img = Image.open(img_path)
+#     buffer = BytesIO()
+#     img.save(buffer, format="PNG")
+#     img_str = base64.b64encode(buffer.getvalue()).decode()
+#     return img_str
 
-# Caminho da imagem
-image_path = 'C:/Users/AmaraNzero/Documents/AmaraBrasil/vs_code/ConciliadorInventarioRotativo/logo.png'
-image_base64 = img_to_bytes(image_path)
+# # Caminho da imagem
+# image_path = 'C:/Users/AmaraNzero/Documents/AmaraBrasil/vs_code/ConciliadorInventarioRotativo/pagina-logo.jpg'
+# image_base64 = img_to_bytes(image_path)
 
 # Centralizando a imagem usando HTML
-st.markdown(f"""
-    <div style='text-align: center;'>
-        <img src='data:image/png;base64,{image_base64}' width='300'>
-    </div>
-    """, unsafe_allow_html=True)
+# st.markdown(f"""
+#     <div style='text-align: center;'>
+#         <img src='data:image/png;base64,{image_base64}' width='300'>
+#     </div>
+#     """, unsafe_allow_html=True)  
+# st.header('Hello')
 
+
+st.header('')
+
+hide_st_style = '''
+                <style>
+                #MainMenu {visibility: hidden;}
+                footer {visibility: hidden;}
+                header {visibility: hidden;}
+                </style>
+'''
+
+st.markdown(hide_st_style, unsafe_allow_html=True)
 
 # Customização do título com HTML e CSS
 st.markdown("""
@@ -92,6 +115,12 @@ def modelagem_df1(df):
     df_final = df_final.reindex(columns=colunas_organizadas)
     
     return df_final
+
+# Função para verificar as colunas
+def verificar_colunas(df, colunas_esperadas):
+    colunas_faltantes = [col for col in colunas_esperadas if col not in df.columns]
+    if colunas_faltantes:
+        raise ValueError(f"Colunas faltantes: {colunas_faltantes}")
     
 # Instruções para o usuário
 # st.write("Faça o upload de uma planilha para visualizar os dados tratados.")
@@ -136,6 +165,44 @@ def modelagem_df2(df):
     }).reset_index()
 
     return df_agregado
+# Função ajustada modelagem_df2 com verificações e logs
+
+# # Função para padrão 2 wms
+def modelagem_df3(df):
+    # renomear as colunas para o padrão original
+    df.rename(columns={
+        'Cód. Produto': 'Produto',
+        'Desc. Produto': 'Descrição',
+        'Qtde Empenhada': 'Empenhada',
+        'Qtde Bloqueada': 'Bloqueado',
+        'Qtde Bloq. Qualidade': 'Qualidade',
+        'Qtde Saldo': 'Saldo'
+    }, inplace = True)
+
+    colunas_selecionas_2 = [
+        'Endereço', 'Produto', 'Descrição',  'Empenhada', 'Bloqueado', 'Qualidade', 'Saldo'
+    ]
+
+    # Criar o dataframe com as colunas selecionadas
+    df_selecionado = df[colunas_selecionas_2]
+
+    # Alterar o tipo de dado da coluna 'Produto' para float64
+    df_selecionado['Produto'] = df_selecionado['Produto'].astype('float64')
+
+    # Criar a coluna 'Saldo wms'
+    df_selecionado['Saldo wms'] = df_selecionado['Empenhada'] + df_selecionado['Bloqueado'] + df_selecionado['Qualidade'] + df_selecionado['Saldo']
+
+    # Converter a coluna 'Produto' para string
+    df_selecionado['Produto'] = df_selecionado['Produto'].astype(str).str.replace('.0', '')
+
+    # Agregar os valores por produto
+    df_agregado = df_selecionado.groupby('Produto').agg({
+        'Empenhada': 'sum',
+        'Saldo wms': 'sum',
+        'Descrição': 'first'  # Manter a descrição do primeiro registro
+    }).reset_index()
+
+    return df_agregado
 
 
 # Instruções para o usuário
@@ -151,7 +218,7 @@ if uploaded_file2:
     
     # Tratar a planilha 1
     df2_final = modelagem_df1(df1)
-    
+                                                                                            
     # Exibição da planilha final
    # st.write("SAP MB52 modelada:")
     #st.write(df_final)
@@ -163,12 +230,25 @@ if uploaded_file1 and uploaded_file2:
     try:
         # Leitura das planilhas
         df1 = pd.read_excel(uploaded_file1)
-        df2 = pd.read_excel(uploaded_file2, skiprows=11)  # Pula as onze primeiras linhas
-        df2.reset_index(drop=True, inplace=True)  # Reseta os índices após pular as linhas
         
         # Tratamento das planilhas
         df1_final = modelagem_df1(df1)
-        df2_final = modelagem_df2(df2)
+
+        # Lendo uploaded_file2 como um DataFrame pandas
+          # Pula as duas primeiras linhas
+        df2 = pd.read_excel(uploaded_file2, skiprows=11)  # Pula as duas primeiras linhas
+        
+        # Identificar o padrão da planilha WMS para determinar qual função de modelagem usar
+        if 'Produto' not in df2.columns and 'Descrição' not in df2.columns:
+           df2 = pd.read_excel(uploaded_file2, skiprows=2)  # Usa modelagem_df3 para o padrão específico da WMS
+           df2_final = modelagem_df3(df2)
+        else:
+            df2 = pd.read_excel(uploaded_file2, skiprows=11)  # Usa modelagem_df3 para o padrão específico da WMS
+            df2_final = modelagem_df2(df2)
+        
+        # # Tratamento das planilhas
+        # df1_final = modelagem_df1(df1)
+        # df2_final = modelagem_df2(df2)
     
         # Mesclar os DataFrames usando outer join
         df_conciliacao = pd.merge(df1_final, df2_final, left_on='Material', right_on='Produto', how='outer')
@@ -288,33 +368,48 @@ if uploaded_file1 and uploaded_file2:
     except Exception as e:
         st.error(f"Erro ao processar os arquivos: {e}")
 
-    #     # Adicionar botões para exibição das planilhas
-    #     st.subheader("Escolha a planilha para exibição:")
-    #     if st.button("Exibir Planilha SAP MB52"):
-    #         st.write("### Planilha SAP MB52")
-    #         st.dataframe(df1_final, use_container_width=True)
-        
-    #     if st.button("Exibir Planilha WMS Sintético"):
-    #         st.write("### Planilha WMS Sintético")
-    #         st.dataframe(df2_final, use_container_width=True)
-        
-    #     if st.button("Exibir Planilha de Conciliação"):
-    #         st.write("### Planilha de Conciliação")
-    #         st.dataframe(df_conciliacao, use_container_width=True)
-        
-    #     if st.button("Exibir Diferenças SAP"):
-    #         st.write("### Diferenças SAP")
-    #         st.dataframe(df_final_diferencas, use_container_width=True)
-        
-    #     if st.button("Exibir Diferenças WMS"):
-    #         st.write("### Diferenças WMS")
-    #         st.dataframe(df_final_dif_wms, use_container_width=True)
-
-    # else: 
-        # st.write("Por favor, faça o upload das duas planilhas.")
+# Adicionando o rodapé
+st.markdown("""
+    <style>
+    .footer {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        background-color: #009000;
+        color: white;
+        text-align: right;
+        padding: 10px;
+        font-size: 14px;
+    }
+    </style>
+    <div class="footer">
+        <p><b> Amara Net Zero Brasil</b> - Versão 00.01</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 
-
-
+# Carregar a imagem e adicioná-la ao rodapé da página
+imagem_base64_rodape = carregar_imagem(caminho_imagem_rodape)
+st.markdown(
+    f"""
+    <style>
+    .footer-img {{
+        position: fixed;
+        bottom: 0;
+        width: 90%;
+        text-align: center;
+    }}
+    .footer-img img {{
+        width: 9%;
+        max-width: 300px;
+    }}
+    </style>
+    <div class="footer-img">
+        <img src="data:image/png;base64,{imagem_base64_rodape}" alt="logo">
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 
