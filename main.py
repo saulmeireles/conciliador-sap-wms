@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import locale
+# import locale
 from io import BytesIO
 from PIL import Image
 import base64
@@ -8,11 +8,11 @@ import base64
 # Definindo o locale para o padrão brasileiro
 # locale.setlocale(locale.LC_ALL, 'pt_BR.utf8')
 # Tente definir a localidade para pt_BR.UTF-8
-try:
-    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-except locale.Error:
-    st.warning("Localidade 'pt_BR.UTF-8' não suportada. Usando localidade padrão.")
-    locale.setlocale(locale.LC_ALL, '')
+# try:
+#     locale.setlocale(locale.LC_ALL, 'pt_BR.utf8')
+# except locale.Error:
+#     st.warning("Localidade 'pt_BR.utf8' não suportada. Usando localidade padrão.")
+#     locale.setlocale(locale.LC_ALL, '')
 
 
 # Configurar o layout da página para largura ampla
