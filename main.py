@@ -17,7 +17,7 @@ import xlrd
 
 
 # Configurar o layout da página para largura ampla
-st.set_page_config(layout="wide", page_title="Conciliação de Inventário Rotativo", page_icon = 'C:/Users/AmaraNzero/Documents/AmaraBrasil/vs_code/ConciliadorInventarioRotativo/logo2.png')
+st.set_page_config(layout="wide", page_title="Conciliação de Inventário Rotativo", page_icon = './logo2.png')
 
 # Função para carregar a imagem
 def carregar_imagem(caminho_imagem):
