@@ -4,6 +4,7 @@ import pandas as pd
 from io import BytesIO
 from PIL import Image
 import base64
+import xlrd
 
 # Definindo o locale para o padrão brasileiro
 # locale.setlocale(locale.LC_ALL, 'pt_BR.utf8')
