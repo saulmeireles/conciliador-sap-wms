@@ -385,7 +385,7 @@ st.markdown("""
         width: 100%;
         background-color: #009000;
         color: white;
-        text-align: right;
+        text-align: left;
         padding: 10px;
         font-size: 14px;
     }
