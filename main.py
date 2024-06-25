@@ -359,17 +359,17 @@ if uploaded_file1 and uploaded_file2:
 
         # Botões para download
         st.download_button(label="Download Conciliação Geral", data=conciliacao_xlsx, file_name="Conciliação Geral.xlsx")
-        st.download_button(label="Download Diferenças (-) WMS vs SAP", data=diferencas_sap_xlsx, file_name="Diferenças (-) WMS vs SAP.xlsx")
-        st.download_button(label="Download Diferenças(+) WMS vs SAP", data=diferencas_wms_xlsx, file_name="Diferenças (+) WMS vs SAP.xlsx")
+        st.download_button(label="Download Diferenças (-) SAP vs WMS", data=diferencas_sap_xlsx, file_name="Diferenças (-) SAP vs WMS.xlsx")
+        st.download_button(label="Download Diferenças(+) SAP vs WMS", data=diferencas_wms_xlsx, file_name="Diferenças (+) SAP vs WMS.xlsx")
 
         # Exibir as tabelas no Streamlit
         st.header("Conciliação Geral")
         st.write(df_conciliacao)
 
-        st.header("Diferenças (-) WMS vs SAP")
+        st.header("Diferenças (-) SAP vs WMS")
         st.write(df_final_diferencas)
 
-        st.header("Diferenças (+) WMS vs SAP")
+        st.header("Diferenças (+) SAP vs WMS")
         st.write(df_final_dif_wms)
     
     except Exception as e:
