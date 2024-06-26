@@ -15,9 +15,10 @@ import xlrd
 #     st.warning("Localidade 'pt_BR.utf8' não suportada. Usando localidade padrão.")
 #     locale.setlocale(locale.LC_ALL, '')
 
+# ----Config Página
 
 # Configurar o layout da página para largura ampla
-st.set_page_config(layout="wide", page_title="Conciliação de Inventário Rotativo", page_icon = './logo2.png')
+st.set_page_config(layout="wide", page_title="Conciliação de Inventário Rotativo", page_icon = './logo5.png')
 
 # Função para carregar a imagem
 def carregar_imagem(caminho_imagem):
@@ -31,27 +32,7 @@ caminho_imagem_topo = "C:/Users/AmaraNzero/Documents/AmaraBrasil/vs_code/Concili
 caminho_imagem_rodape = "./logo_branca.png"
 
 # Adicionando uma imagem centralizada acima do título com tamanho reduzido
-st.image('./pagina-logo.jpg',width=1480, use_column_width=False)
-
-# Função para converter imagem para base64
-# def img_to_bytes(img_path):
-#     img = Image.open(img_path)
-#     buffer = BytesIO()
-#     img.save(buffer, format="PNG")
-#     img_str = base64.b64encode(buffer.getvalue()).decode()
-#     return img_str
-
-# # Caminho da imagem
-# image_path = 'C:/Users/AmaraNzero/Documents/AmaraBrasil/vs_code/ConciliadorInventarioRotativo/pagina-logo.jpg'
-# image_base64 = img_to_bytes(image_path)
-
-# Centralizando a imagem usando HTML
-# st.markdown(f"""
-#     <div style='text-align: center;'>
-#         <img src='data:image/png;base64,{image_base64}' width='300'>
-#     </div>
-#     """, unsafe_allow_html=True)  
-# st.header('Hello')
+st.image('./pagina-logo2.jpg',width=1480, use_column_width=False)
 
 
 st.header('')
@@ -66,15 +47,8 @@ hide_st_style = '''
 
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
-# Customização do título com HTML e CSS
-st.markdown("""
-    <h1 style='text-align: center; color: #009000;'>
-        Conciliação de Inventário Rotativo
-    </h1>
-    """, unsafe_allow_html=True)
 
-
-# Modelagem df1:
+# ---- Modelagem SAP
 
 def modelagem_df1(df):
     colunas_selecionadas = [
@@ -150,6 +124,9 @@ if uploaded_file1:
 else: 
     st.warning("Por favor, faça o upload da planilha SAP")
 
+
+# ----- Modelagem WMS
+
 def modelagem_df2(df):
     colunas_selecionadas_2 = [
         'Endereço', 'Produto', 'Descrição', 'Empenhada', 'Bloqueado', 'Qualidade', 'Saldo'
@@ -215,6 +192,8 @@ def modelagem_df3(df):
 # Instruções para o usuário
 #st.write("Faça o upload de uma planilha para visualizar os dados tratados.")
 
+# ----- Uploads
+
 # Upload do arquivo
 uploaded_file2 = st.file_uploader("Carregue a planilha WMS Sintético", type=['xlsx', 'xls'])
 
@@ -256,6 +235,8 @@ if uploaded_file1 and uploaded_file2:
         # # Tratamento das planilhas
         # df1_final = modelagem_df1(df1)
         # df2_final = modelagem_df2(df2)
+
+        # ----- Conciliação Geral
     
         # Mesclar os DataFrames usando outer join
         df_conciliacao = pd.merge(df1_final, df2_final, left_on='Material', right_on='Produto', how='outer')
@@ -299,8 +280,20 @@ if uploaded_file1 and uploaded_file2:
         df_conciliacao.loc[df_conciliacao['Material'].isnull(), 'Sobra / Falta'] = 'NC / SAP'
         df_conciliacao.loc[df_conciliacao['Saldo wms'].isnull(), 'Sobra / Falta'] = 'NC / WMS'
 
+        # Adiciona a condição para ajustar Diferenças R$ quando Sobra / Falta for 'NC / WMS'
+        df_conciliacao.loc[df_conciliacao['Sobra / Falta'] == 'NC / WMS', 'Diferenças R$'] = (
+            df_conciliacao['Val.utiliz.livre'] + df_conciliacao['Val.estoque bloq.']
+        )
+
+        # Ordenar pela coluna Diferenças de forma decrescente
+        df_conciliacao.sort_values(by='Diferenças', ascending=False, inplace=True)
+        
+        # Organizando as colunas
         df_conciliacao = df_conciliacao[['Material', 'Texto breve de material', 'UM básica', 'Utilização livre', 'Val.utiliz.livre', 'Bloqueado', 'Val.estoque bloq.', 'Produto',
                                 'Descrição', 'Empenhada', 'Saldo wms', 'Diferenças', 'Valor Unit', 'Saldo SAP', 'Diferenças R$', 'Local DIF', 'Sobra / Falta']]
+        
+       
+        # --------- SAP
         # Criar a planilha de Diferenças SAP
         df_diferencas_sap = df_conciliacao[df_conciliacao['Sobra / Falta'] == 'Sobra WMS']
 
@@ -323,7 +316,8 @@ if uploaded_file1 and uploaded_file2:
         
         df_final_diferencas = df_final_diferencas[['Material', 'Texto breve de material', 'UMB','Centro', 'Depósito', 'Lote', 'Utilização livre', 'Val. Utiliz.Livre', 'Bloqueado', 'Val.estoque bloq']]
 
-
+        
+        # ----------WMS
         # Criação da planilha Diferenças WMS:
         df_diferencas_WMS = df_conciliacao[df_conciliacao['Sobra / Falta'] == 'Falta WMS']
 
@@ -344,6 +338,9 @@ if uploaded_file1 and uploaded_file2:
 
         df_final_dif_wms = df_final_dif_wms.rename(columns={'Descrição_x': 'Descrição', 'Empenhada_y': 'Empenhada'})
 
+
+        # -----Modelagem - planilha
+
         # Função para converter DataFrame em Excel e retornar BytesIO
         def to_excel(df):
             output = BytesIO()
@@ -357,6 +354,8 @@ if uploaded_file1 and uploaded_file2:
         diferencas_sap_xlsx = to_excel(df_final_diferencas)
         diferencas_wms_xlsx = to_excel(df_final_dif_wms)
 
+
+        # ----- Download
         # Botões para download
         st.download_button(label="Download Conciliação Geral", data=conciliacao_xlsx, file_name="Conciliação Geral.xlsx")
         st.download_button(label="Download Diferenças (-) SAP vs WMS", data=diferencas_sap_xlsx, file_name="Diferenças (-) SAP vs WMS.xlsx")
@@ -375,6 +374,29 @@ if uploaded_file1 and uploaded_file2:
     except Exception as e:
         st.error(f"Erro ao processar os arquivos: {e}")
 
+
+        # ----- Layout
+
+# # Adicionando o rodapé
+# st.markdown("""
+#     <style>
+#     .footer {
+#         position: fixed;
+#         left: 0;
+#         bottom: 0;
+#         width: 100%;
+#         background-color: #009000;
+#         color: white;
+#         text-align: left;
+#         padding: 10px;
+#         font-size: 14px;
+#     }
+#     </style>
+#     <div class="footer">
+#         <p><b> A-GIR</b> - Versão 00.01</p>
+#     </div>
+#     """, unsafe_allow_html=True)
+
 # Adicionando o rodapé
 st.markdown("""
     <style>
@@ -386,12 +408,18 @@ st.markdown("""
         background-color: #009000;
         color: white;
         text-align: left;
-        padding: 10px;
-        font-size: 14px;
+        padding: 12px;
+        font-size: 10px;
+        display: flex;
+        justify-content: space-between;
+    }
+    .footer p {
+        margin: 0;
     }
     </style>
     <div class="footer">
-        <p><b> Amara Net Zero Brasil</b> - Versão 00.01</p>
+        <p><b>a-GIR</b> • Versão 00.01</p>
+        <p>Amara Net Zero Brasil</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -408,7 +436,7 @@ st.markdown(
         text-align: center;
     }}
     .footer-img img {{
-        width: 9%;
+        width: 7%;
         max-width: 300px;
     }}
     </style>
